@@ -13,20 +13,26 @@ app.use(express.static(__dirname + "/public"));
 app.use(bodyParser.urlencoded({extended:false}));
 
 app.get("/", function(req,res){
-    res.render("index")
+    res.render("links/index")
 });
 
 app.post("/create", function(req,res) {
-    db.URL.create({"prefix": req.body.prefix})
+    db.URL.create(req.body)
     .done(function(err, data) {
     var result = hashids.encode(data.id);
     data.suffix = result;
-    data.save().done(function(err, data2) {
-        console.log(data2)
-        res.render("./create", data2);
+    data.save().done(function(err, data) {
+        res.render("links/create", {data:data});
     });
     });
 });
+
+app.get("/:suffix", function(req,res){
+    db.URL.find({ where: { suffix: req.params.suffix } }).done(function(error, data){
+    res.redirect("http://" + data.prefix)
+})
+})
+
 
 app.listen(3000, function() {
     console.log("Death Race 3000!");
